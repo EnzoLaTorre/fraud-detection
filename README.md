@@ -121,21 +121,6 @@ El clasificador emite probabilidades; el umbral por defecto es 0.5, pero no siem
 
 **¿Qué aprendimos de los modelos?** En desbalanceo extremo, la accuracy no sirve como referencia; hay que medir recall/precision/F1. El balanceo sintético (SMOTE) no ayudó al modelo lineal pero sí a los árboles. Finalmente, el umbral de decisión permite "calibrar" el modelo según las necesidades del negocio.
 
-## Limitaciones
-
-- Dataset **histórico**: el fraude cambia con el tiempo y el modelo puede degradarse sin actualizarse.
-- Variables **anonimizadas**: se pierde explicabilidad financiera.
-- El modelo **no detecta el 100%** del fraude; siempre habrá falsos negativos.
-- Los costos reales de FP/FN dependen de cada institución.
-- Los resultados corresponden a **este dataset** y a un split fijo (seed 42).
-
-## Trabajo futuro
-
-- Reentrenar con datos más recientes y **monitorear drift**.
-- Ajuste moderado de hiperparámetros.
-- **Explicabilidad** con SHAP.
-- **API** para consultar el modelo y **dashboard** para el monitoreo de alertas.
-
 ## Tecnologías utilizadas
 
 Python · pandas · numpy · matplotlib · seaborn · scikit-learn · imbalanced-learn (SMOTE) · XGBoost · Jupyter
