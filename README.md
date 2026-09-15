@@ -130,7 +130,15 @@ Python · pandas · numpy · matplotlib · seaborn · scikit-learn · imbalanced
 ```
 fraud-detection/
 ├── data/creditcard.csv          # dataset (ignorado en Git: 150 MB, se descarga de Kaggle)
-├── notebooks/fraud_analysis.ipynb  # proyecto completo
+├── notebooks/fraud_analysis.ipynb  # análisis y experimentación completo
+├── src/
+│   ├── train.py                 # entrena el modelo final y guarda artefactos (models/)
+│   └── predict.py               # carga artefactos y clasifica transacciones nuevas
+├── app.py                       # dashboard Streamlit: subir CSV y ver predicciones en vivo
+├── models/                      # generado por src/train.py (ignorado en Git)
+│   ├── rf_smote.pkl             #   modelo Random Forest (SMOTE)
+│   ├── scaler.pkl               #   RobustScaler ajustado en train
+│   └── config.json              #   umbral, columnas requeridas, metadata
 ├── .gitignore
 ├── requirements.txt
 └── README.md
@@ -148,11 +156,41 @@ pip install -r requirements.txt
 
 ## Cómo ejecutar
 
+**1) Análisis completo (notebook):**
+
 ```bash
 jupyter notebook
 ```
 
 Abrir `notebooks/fraud_analysis.ipynb` y ejecutar las celdas en orden.
+
+**2) Entrenar el modelo final y generar artefactos:**
+
+```bash
+python src/train.py
+```
+
+Guarda en `models/` el modelo, el escalador y la configuración (umbral 0.7).
+
+**3) Clasificar transacciones nuevas (línea de comandos):**
+
+```python
+from src.predict import predecir, validar_esquema
+
+resultado = predecir(datos_nuevos)   # datos_nuevos: DataFrame con Time, Amount, V1-V28
+# resultante: resultado["Probabilidad_Fraude"], resultado["Fraude_Predicho"]
+```
+
+**4) Dashboard interactivo (subir CSV y ver resultados en tiempo real):**
+
+```bash
+streamlit run app.py
+```
+
+El usuario sube un CSV con las columnas `Time, Amount, V1–V28` y obtiene al
+instante la probabilidad de fraude, la clasificación, gráficos y la
+descarga de predicciones. Si el CSV incluye la columna `Class` (etiqueta
+real), el dashboard muestra además precision, recall, F1 y matriz de confusión.
 
 ## Conclusiones
 

@@ -9,3 +9,7 @@ data/
 # Artefactos generados
 *.log
 .DS_Store
+
+# Artefactos del modelo (se regeneran con src/train.py)
+models/
+*.pkl
