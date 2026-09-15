@@ -1,0 +1,11 @@
+# Entornos / caché de Jupyter
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+
+# Dataset grande (150 MB): se descarga de Kaggle manualmente
+data/
+
+# Artefactos generados
+*.log
+.DS_Store
