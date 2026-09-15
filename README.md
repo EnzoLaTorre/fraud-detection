@@ -1,6 +1,26 @@
 # Detección de Fraude en Tarjetas de Crédito
 
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.63-FF4B4B?logo=streamlit&logoColor=white)
+![scikit-learn](https://img.shields.io/badge/scikit--learn-1.9-F7931E?logo=scikit-learn&logoColor=white)
+![XGBoost](https://img.shields.io/badge/XGBoost-3.4-00A6A6?logo=xgboost&logoColor=white)
+![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
+
 Proyecto de ciencia de datos (análisis + machine learning) para detectar transacciones fraudulentas en tarjetas de crédito, desarrollado con el flujo completo de un proyecto de Data Science: problema → datos → exploración → preprocesamiento → balanceo → modelos → evaluación → selección → umbral → conclusiones.
+
+## Demo en vivo
+
+Incluye un **dashboard interactivo** (Streamlit) para probar el modelo en línea, sin instalar nada:
+
+```text
+➡️ https://<tu-app>.streamlit.app        ← reemplazar con la URL tras el deploy
+```
+
+![Dashboard](./imagenes/dashboard.png)
+
+**Un clic es suficiente:** el dashboard incluye un **dataset de ejemplo** precargado, así que se pueden ver las predicciones, las métricas, el análisis de umbrales y el impacto económico sin subir ningún archivo.
+
+> Cómo desplegarla (una vez): entra a [Streamlit Community Cloud](https://share.streamlit.io) → **Create app** → repo `EnzoLaTorre/fraud-detection`, branch `main`, archivo `app.py` → **Deploy**.
 
 ## Descripción
 
@@ -27,6 +47,8 @@ Usando el dataset **Credit Card Fraud Detection** (Kaggle), se entrena un modelo
 - Variable objetivo **`Class`**: `1` = fraude, `0` = normal.
 - Variables: `Time` (segundos desde la primera transacción), `Amount` (monto) y `V1`–`V28`, que son **variables anonimizadas** (transformadas vía PCA por el dueño del dataset; no tienen un significado financiero interpretable).
 - Tras la limpieza de **1,081 filas duplicadas**: **283,726 registros** y **473 fraudes (0.167%)**.
+
+> El dataset completo (150 MB) no está en Git por su tamaño. Para las demos y el dashboard se incluye **`data/creditcard_ejemplo.csv`** (15,473 transacciones con los 473 fraudes), que da la misma experiencia de uso sin el peso del archivo original.
 
 ## Metodología
 
@@ -123,22 +145,26 @@ El clasificador emite probabilidades; el umbral por defecto es 0.5, pero no siem
 
 ## Tecnologías utilizadas
 
-Python · pandas · numpy · matplotlib · seaborn · scikit-learn · imbalanced-learn (SMOTE) · XGBoost · Jupyter
+Python · pandas · numpy · matplotlib · seaborn · scikit-learn · imbalanced-learn (SMOTE) · XGBoost · Jupyter · Streamlit
 
 ## Estructura del proyecto
 
 ```
 fraud-detection/
-├── data/creditcard.csv          # dataset (ignorado en Git: 150 MB, se descarga de Kaggle)
+├── data/
+│   ├── creditcard.csv            # dataset completo (ignorado: 150 MB, se descarga de Kaggle)
+│   └── creditcard_ejemplo.csv    # muestra 15,473 transacciones (473 fraudes) para demos y cloud
 ├── notebooks/fraud_analysis.ipynb  # análisis y experimentación completo
 ├── src/
 │   ├── train.py                 # entrena el modelo final y guarda artefactos (models/)
 │   └── predict.py               # carga artefactos y clasifica transacciones nuevas
 ├── app.py                       # dashboard Streamlit: subir CSV y ver predicciones en vivo
-├── models/                      # generado por src/train.py (ignorado en Git)
+├── imagenes/                    # capturas para el README
+├── models/                      # artefactos ya entrenados (commiteados para el deploy)
 │   ├── rf_smote.pkl             #   modelo Random Forest (SMOTE)
 │   ├── scaler.pkl               #   RobustScaler ajustado en train
 │   └── config.json              #   umbral, columnas requeridas, metadata
+├── .streamlit/config.toml       # tema y opciones de Streamlit
 ├── .gitignore
 ├── requirements.txt
 └── README.md
@@ -164,13 +190,13 @@ jupyter notebook
 
 Abrir `notebooks/fraud_analysis.ipynb` y ejecutar las celdas en orden.
 
-**2) Entrenar el modelo final y generar artefactos:**
+**2) Entrenar el modelo final y regenerar artefactos (opcional; ya vienen entrenados):**
 
 ```bash
 python src/train.py
 ```
 
-Guarda en `models/` el modelo, el escalador y la configuración (umbral 0.7).
+Guarda en `models/` el modelo, el escalador y la configuración (umbral 0.7). Estos archivos ya están incluidos en el repositorio.
 
 **3) Clasificar transacciones nuevas (línea de comandos):**
 

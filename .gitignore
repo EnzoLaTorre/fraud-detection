@@ -4,12 +4,9 @@ __pycache__/
 *.pyc
 
 # Dataset grande (150 MB): se descarga de Kaggle manualmente
-data/
+data/*
+!data/creditcard_ejemplo.csv
 
 # Artefactos generados
 *.log
 .DS_Store
-
-# Artefactos del modelo (se regeneran con src/train.py)
-models/
-*.pkl

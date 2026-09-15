@@ -33,6 +33,7 @@ COLOR_NORMAL = "#2e86ab"
 COLOR_FRAUDE = "#d7263d"
 RAIZ = Path(__file__).resolve().parent
 DATASET_EJEMPLO = RAIZ / "data" / "creditcard.csv"
+DATASET_EJEMPLO_MUESTRA = RAIZ / "data" / "creditcard_ejemplo.csv"
 
 
 def obtener_umbral():
@@ -263,9 +264,15 @@ def analisis_economico(resultado, costo_revision, perdida_promedio) -> tuple:
 
 
 def _cargar_ejemplo():
-    """Muestra balanceada (20k normales + todos los fraudes) del dataset."""
+    """Muestra balanceada (normales + todos los fraudes) del dataset.
+
+    Si existe el archivo de ejemplo ya generado (commiteado para el cloud),
+    lo usa directo; si no, lo construye desde el dataset completo local.
+    """
+    if DATASET_EJEMPLO_MUESTRA.exists():
+        return pd.read_csv(DATASET_EJEMPLO_MUESTRA).drop_duplicates()
     df = pd.read_csv(DATASET_EJEMPLO).drop_duplicates()
-    normales = df[df["Class"] == 0].sample(20000, random_state=42)
+    normales = df[df["Class"] == 0].sample(15000, random_state=42)
     fraudes = df[df["Class"] == 1]
     return pd.concat([normales, fraudes]).sample(frac=1, random_state=42)
 
@@ -285,11 +292,15 @@ def main():
 
     st.title("Detección de Fraude en Tarjetas de Crédito")
     st.markdown(
-        "Subí un archivo **CSV** con transacciones y obtendrás la probabilidad de "
-        "fraude y la clasificación al instante (también podés probar con un "
-        "**dataset de ejemplo**). "
-        "Si además incluye la columna `Class` (0 = normal, 1 = fraude), verás las "
-        "métricas de desempeño, el barrido y el análisis económico de umbrales."
+        "Carga un archivo CSV con las transacciones y el sistema analizará "
+        "automáticamente cada registro para determinar su **probabilidad de fraude** "
+        "y asignarle una **clasificación**.\n\n"
+        "También podrás utilizar un **conjunto de datos de ejemplo** para realizar "
+        "pruebas.\n\n"
+        "Si el archivo contiene la columna **Class** (0 = transacción normal, "
+        "1 = fraude), el sistema mostrará adicionalmente las **métricas de evaluación "
+        "del modelo**, el análisis de diferentes **umbrales de clasificación** y una "
+        "evaluación del **impacto económico** de las decisiones tomadas."
     )
 
     try:
@@ -328,8 +339,8 @@ def main():
                       horizontal=True)
 
     if fuente == "Dataset de ejemplo":
-        if not DATASET_EJEMPLO.exists():
-            st.error("No se encontró `data/creditcard.csv` para el dataset de ejemplo.")
+        if not (DATASET_EJEMPLO_MUESTRA.exists() or DATASET_EJEMPLO.exists()):
+            st.error("No se encontró `data/creditcard_ejemplo.csv` para el dataset de ejemplo.")
             st.stop()
         bytes_fuente = b"__ejemplo__"
     else:
