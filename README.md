@@ -187,10 +187,19 @@ resultado = predecir(datos_nuevos)   # datos_nuevos: DataFrame con Time, Amount,
 streamlit run app.py
 ```
 
-El usuario sube un CSV con las columnas `Time, Amount, V1–V28` y obtiene al
-instante la probabilidad de fraude, la clasificación, gráficos y la
-descarga de predicciones. Si el CSV incluye la columna `Class` (etiqueta
-real), el dashboard muestra además precision, recall, F1 y matriz de confusión.
+El usuario sube un CSV con las columnas `Time, Amount, V1–V28` (o usa el
+**dataset de ejemplo** incluido) y obtiene al instante la probabilidad de
+fraude, la clasificación y análisis visuales. El dashboard incluye:
+
+- **Umbral de decisión interactivo**: mover el slider recalcula todo en vivo.
+- **Calidad de datos**: nulos, duplicados, tipos y balance de clases.
+- **Análisis visual**: probabilidades, montos, temporalidad, top transacciones
+  riesgosas y curva de captura acumulada.
+- **Interpretabilidad**: importancia de las variables del Random Forest.
+- Si el CSV incluye la columna `Class` (etiqueta real): métricas, **barrido de
+  umbrales**, tabla de falsos positivos/negativos, curvas ROC y
+  Precision-Recall, matriz de confusión y **análisis económico del umbral**
+  (costo por revisión vs pérdida por fraude, con umbral recomendado en $).
 
 ## Conclusiones
 

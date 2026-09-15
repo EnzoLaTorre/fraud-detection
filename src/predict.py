@@ -85,6 +85,28 @@ def predecir(carga: pd.DataFrame) -> pd.DataFrame:
     return resultado
 
 
+def clasificar(resultado: pd.DataFrame, umbral: float) -> pd.DataFrame:
+    """Reclasifica sin volver a predecir: aplica un nuevo umbral sobre las
+    probabilidades ya calculadas y devuelve una copia."""
+    if "Probabilidad_Fraude" not in resultado.columns:
+        raise ValueError(
+            "El DataFrame no tiene 'Probabilidad_Fraude'. "
+            "Ejecutá `predecir()` antes de usar `clasificar()`."
+        )
+    nuevo = resultado.copy()
+    nuevo["Fraude_Predicho"] = (nuevo["Probabilidad_Fraude"] >= umbral).astype(int)
+    return nuevo
+
+
+def importancia_modelo(n: int = 20):
+    """Devuelve las (variables, importancias) más relevantes del modelo."""
+    modelo = cargar_artefactos()["modelo"]
+    columnas = cargar_artefactos()["columnas"]
+    importancias = modelo.feature_importances_
+    orden = importancias.argsort()[::-1][:n]
+    return [columnas[i] for i in orden], importancias[orden]
+
+
 def metricas(carga: pd.DataFrame, resultado: pd.DataFrame) -> dict:
     """Calcula métricas solo si la data incluye la etiqueta real `Class`."""
     if "Class" not in resultado.columns:
