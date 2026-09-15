@@ -362,54 +362,129 @@ def main():
     resultado = predict.clasificar(resultado, umbral)
     columnas_orig = [c for c in resultado.columns
                      if c not in {"Probabilidad_Fraude", "Fraude_Predicho"}]
+    tiene_class = "Class" in resultado.columns
 
-    st.subheader("Calidad de los datos")
-    nulos = int(resultado[columnas_orig].isna().sum().sum())
-    duplicados = int(resultado[columnas_orig].duplicated().sum())
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Filas", f"{resultado.shape[0]:,}")
-    c2.metric("Columnas", resultado.shape[1])
-    c3.metric("Valores nulos", nulos)
-    c4.metric("Duplicados", duplicados)
-    if "Class" in resultado.columns:
-        vc = resultado["Class"].value_counts()
-        st.write(f"**Fraudes en la data:** {int(vc.get(1, 0)):,} | "
-                 f"**Normales:** {int(vc.get(0, 0)):,} "
-                 f"({(vc.get(1, 0) / max(1, vc.sum()) * 100):.3f}%)")
-    st.dataframe(resumen_calidad(resultado[columnas_orig]), use_container_width=True)
-
-    st.subheader("Vista previa de los datos")
-    st.dataframe(resultado[columnas_orig].head(1000), use_container_width=True)
-
-    st.subheader("Resultados de la predicción")
-    st.metric(f"Transacciones clasificadas como fraude (umbral {umbral:.2f})",
-              int(resultado["Fraude_Predicho"].sum()))
-    st.dataframe(
-        resultado[["Probabilidad_Fraude", "Fraude_Predicho"]].tail(1000),
-        use_container_width=True,
+    tab_datos, tab_pred, tab_visual, tab_eval, tab_eco = st.tabs(
+        ["1. Datos", "2. Predicciones", "3. Análisis visual",
+         "4. Evaluación", "5. Impacto económico"]
     )
 
-    col_hist, col_estado = st.columns([2, 1])
-    with col_hist:
-        st.pyplot(grafico_probabilidad(resultado, umbral))
-    with col_estado:
-        conteo = resultado["Fraude_Predicho"].value_counts()
-        est = pd.DataFrame({
-            "Clase": ["Normal (0)", "Fraude (1)"],
-            "Transacciones": [int(conteo.get(0, 0)), int(conteo.get(1, 0))],
-        })
-        st.dataframe(est, use_container_width=True)
-        st.markdown("### Interpretación")
-        st.write(
-            "Cada transacción con probabilidad ≥ {:.2f} se marca como fraude. "
-            "Las marcadas como fraude requieren revisión manual.".format(umbral)
+    with tab_datos:
+        st.subheader("Calidad de los datos")
+        nulos = int(resultado[columnas_orig].isna().sum().sum())
+        duplicados = int(resultado[columnas_orig].duplicated().sum())
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Filas", f"{resultado.shape[0]:,}")
+        c2.metric("Columnas", resultado.shape[1])
+        c3.metric("Valores nulos", nulos)
+        c4.metric("Duplicados", duplicados)
+        if tiene_class:
+            vc = resultado["Class"].value_counts()
+            st.write(f"**Fraudes en la data:** {int(vc.get(1, 0)):,} | "
+                     f"**Normales:** {int(vc.get(0, 0)):,} "
+                     f"({(vc.get(1, 0) / max(1, vc.sum()) * 100):.3f}%)")
+        st.dataframe(resumen_calidad(resultado[columnas_orig]),
+                     use_container_width=True)
+
+        st.subheader("Vista previa de los datos")
+        st.dataframe(resultado[columnas_orig].head(1000), use_container_width=True)
+
+    with tab_pred:
+        st.subheader("Resultados de la predicción")
+        pred_fraudes = int(resultado["Fraude_Predicho"].sum())
+        p1, p2, p3 = st.columns(3)
+        p1.metric("Transacciones analizadas", f"{resultado.shape[0]:,}")
+        p2.metric(f"Como fraude (umbral {umbral:.2f})", f"{pred_fraudes:,}")
+        p3.metric("% de fraude predicho",
+                  f"{pred_fraudes / max(1, resultado.shape[0]) * 100:.2f}%")
+
+        col_hist, col_est = st.columns([2, 1])
+        with col_hist:
+            st.pyplot(grafico_probabilidad(resultado, umbral))
+        with col_est:
+            conteo = resultado["Fraude_Predicho"].value_counts()
+            est = pd.DataFrame({
+                "Clase": ["Normal (0)", "Fraude (1)"],
+                "Transacciones": [int(conteo.get(0, 0)), int(conteo.get(1, 0))],
+            })
+            st.dataframe(est, use_container_width=True)
+            st.markdown("### Interpretación")
+            st.write(
+                "Cada transacción con probabilidad ≥ {:.2f} se marca como fraude. "
+                "Las marcadas como fraude requieren revisión manual.".format(umbral)
+            )
+
+        st.markdown("**Top transacciones más riesgosas**")
+        n_top = st.slider("Cantidad de transacciones a mostrar", min_value=5,
+                          max_value=50, value=10, step=5)
+        st.pyplot(grafico_top_n(resultado, n_top, umbral))
+
+        st.subheader("Predicción por transacción")
+        st.dataframe(
+            resultado[["Probabilidad_Fraude", "Fraude_Predicho"]].tail(1000),
+            use_container_width=True,
         )
 
-    with st.expander("Barrido de umbrales (Precision / Recall / F1 / FP / FN)"):
-        if "Class" not in resultado.columns:
-            st.info("Necesitás subir un archivo con la columna `Class` para "
-                    "evaluar el barrido de umbrales.")
+        descarga = resultado.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            "Descargar predicciones (CSV)",
+            data=descarga,
+            file_name="predicciones_fraude.csv",
+            mime="text/csv",
+        )
+
+    with tab_visual:
+        st.subheader("Análisis visual")
+        col_amount, col_tiempo = st.columns(2)
+        with col_amount:
+            st.pyplot(grafico_amount(resultado))
+        with col_tiempo:
+            st.pyplot(grafico_tiempo(resultado))
+        st.pyplot(grafico_captura(resultado))
+
+        st.subheader("Interpretabilidad del modelo")
+        st.pyplot(grafico_importancia())
+        st.caption("Importancia de las variables del Random Forest guardado "
+                   "(independiente de los datos subidos).")
+
+    with tab_eval:
+        if not tiene_class:
+            st.info("Subí un archivo con la columna `Class` para ver la "
+                    "evaluación del modelo.")
         else:
+            st.subheader("Evaluación sobre los datos subidos (etiqueta real)")
+            m = predict.metricas(resultado, resultado)
+            cols = st.columns(5)
+            cols[0].metric("Precision", f"{m['precision']:.3f}")
+            cols[1].metric("Recall", f"{m['recall']:.3f}")
+            cols[2].metric("F1", f"{m['f1']:.3f}")
+            cols[3].metric("Falsos positivos", m["fp"])
+            cols[4].metric("Fraudes no detectados (FN)", m["fn"])
+
+            fp_df, fn_df = extraer_fp_fn(resultado)
+            tab_fp, tab_fn, tab_curvas = st.tabs(
+                ["Falsos positivos", "Falsos negativos", "Curvas y matriz de confusión"]
+            )
+            with tab_fp:
+                st.caption("Normales marcadas como fraude (falsa alarma).")
+                st.dataframe(fp_df, use_container_width=True)
+            with tab_fn:
+                st.caption("Fraudes reales no detectados (pérdida de dinero).")
+                st.dataframe(fn_df, use_container_width=True)
+            with tab_curvas:
+                if resultado["Class"].nunique() < 2:
+                    st.info("La data tiene una sola clase: las curvas ROC y "
+                            "Precision-Recall no se pueden calcular. Se muestra la "
+                            "matriz de confusión.")
+                    st.pyplot(grafico_matriz_confusion(m))
+                else:
+                    col_roc, col_cm = st.columns(2)
+                    with col_roc:
+                        st.pyplot(grafico_roc_pr(resultado))
+                    with col_cm:
+                        st.pyplot(grafico_matriz_confusion(m))
+
+            st.subheader("Barrido de umbrales")
             tabla_umbrales = barrido_umbrales(resultado, np.arange(0.10, 1.0, 0.05))
             st.dataframe(tabla_umbrales, use_container_width=True)
             mejor_f1 = tabla_umbrales.loc[tabla_umbrales["F1"].idxmax()]
@@ -419,81 +494,26 @@ def main():
                 f"Recall = {mejor_f1['Recall']:.3f})"
             )
 
-    st.subheader("Análisis visual")
-
-    col_amount, col_tiempo = st.columns(2)
-    with col_amount:
-        st.pyplot(grafico_amount(resultado))
-    with col_tiempo:
-        st.pyplot(grafico_tiempo(resultado))
-
-    st.markdown("**Top transacciones más riesgosas**")
-    n_top = st.slider("Cantidad de transacciones a mostrar", min_value=5,
-                      max_value=50, value=10, step=5)
-    st.pyplot(grafico_top_n(resultado, n_top, umbral))
-
-    st.pyplot(grafico_captura(resultado))
-
-    st.subheader("Interpretabilidad del modelo")
-    st.pyplot(grafico_importancia())
-    st.caption("Importancia de las variables del Random Forest guardado "
-               "(independiente de los datos subidos).")
-
-    if "Class" in resultado.columns:
-        st.subheader("Evaluación sobre los datos subidos (con etiqueta real)")
-        m = predict.metricas(resultado, resultado)
-        cols = st.columns(5)
-        cols[0].metric("Precision", f"{m['precision']:.3f}")
-        cols[1].metric("Recall", f"{m['recall']:.3f}")
-        cols[2].metric("F1", f"{m['f1']:.3f}")
-        cols[3].metric("Falsos positivos", m["fp"])
-        cols[4].metric("Fraudes no detectados (FN)", m["fn"])
-
-        fp_df, fn_df = extraer_fp_fn(resultado)
-        tab_fp, tab_fn, tab_curvas = st.tabs(
-            ["Falsos positivos", "Falsos negativos", "Curvas y matriz de confusión"]
-        )
-        with tab_fp:
-            st.caption("Normales marcadas como fraude (falsa alarma).")
-            st.dataframe(fp_df, use_container_width=True)
-        with tab_fn:
-            st.caption("Fraudes reales no detectados (pérdida de dinero).")
-            st.dataframe(fn_df, use_container_width=True)
-        with tab_curvas:
-            if resultado["Class"].nunique() < 2:
-                st.info("La data tiene una sola clase: las curvas ROC y "
-                        "Precision-Recall no se pueden calcular. Se muestra la "
-                        "matriz de confusión.")
-                st.pyplot(grafico_matriz_confusion(m))
-            else:
-                col_roc, col_cm = st.columns(2)
-                with col_roc:
-                    st.pyplot(grafico_roc_pr(resultado))
-                with col_cm:
-                    st.pyplot(grafico_matriz_confusion(m))
-
-        st.subheader("Análisis económico del umbral")
-        tabla_economico, mejor_economico = analisis_economico(
-            resultado, costo_revision, perdida_promedio
-        )
-        col_est, col_rec = st.columns([3, 1])
-        with col_est:
-            st.dataframe(tabla_economico, use_container_width=True)
-        with col_rec:
-            st.metric("Mejor umbral (costo)", f"{mejor_economico['Umbral']:.2f}")
-            st.metric("Costo mínimo total", f"${mejor_economico['Costo total ($)']:,.2f}")
-        st.caption(
-            f"Costo = FP × ${costo_revision:,.0f} + FN × ${perdida_promedio:,.0f} "
-            "por umbral. Ajustá los valores en la barra lateral."
-        )
-
-    descarga = resultado.to_csv(index=False).encode("utf-8")
-    st.download_button(
-        "Descargar predicciones (CSV)",
-        data=descarga,
-        file_name="predicciones_fraude.csv",
-        mime="text/csv",
-    )
+    with tab_eco:
+        if not tiene_class:
+            st.info("Subí un archivo con la columna `Class` para ver el "
+                    "análisis económico del umbral.")
+        else:
+            st.subheader("Análisis económico del umbral")
+            tabla_economico, mejor_economico = analisis_economico(
+                resultado, costo_revision, perdida_promedio
+            )
+            col_est, col_rec = st.columns([3, 1])
+            with col_est:
+                st.dataframe(tabla_economico, use_container_width=True)
+            with col_rec:
+                st.metric("Mejor umbral (costo)", f"{mejor_economico['Umbral']:.2f}")
+                st.metric("Costo mínimo total",
+                          f"${mejor_economico['Costo total ($)']:,.2f}")
+            st.caption(
+                f"Costo = FP × ${costo_revision:,.0f} + FN × ${perdida_promedio:,.0f} "
+                "por umbral. Ajustá los valores en la barra lateral."
+            )
 
 
 if __name__ == "__main__":
