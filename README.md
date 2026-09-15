@@ -13,14 +13,14 @@ Proyecto de ciencia de datos (análisis + machine learning) para detectar transa
 Incluye un **dashboard interactivo** (Streamlit) para probar el modelo en línea, sin instalar nada:
 
 ```text
-➡️ https://<tu-app>.streamlit.app        ← reemplazar con la URL tras el deploy
+➡️ https://fraud-detection-l9fzuu2wdfk3rj8ewfjj63.streamlit.app/
 ```
 
 ![Dashboard](./imagenes/dashboard.png)
 
 **Un clic es suficiente:** el dashboard incluye un **dataset de ejemplo** precargado, así que se pueden ver las predicciones, las métricas, el análisis de umbrales y el impacto económico sin subir ningún archivo.
 
-> Cómo desplegarla (una vez): entra a [Streamlit Community Cloud](https://share.streamlit.io) → **Create app** → repo `EnzoLaTorre/fraud-detection`, branch `main`, archivo `app.py` → **Deploy**.
+> El dashboard ya está desplegado en [Streamlit Community Cloud](https://share.streamlit.io) a partir del repositorio `EnzoLaTorre/fraud-detection` (branch `main`, archivo `app.py`).
 
 ## Descripción
 
