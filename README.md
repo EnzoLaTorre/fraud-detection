@@ -8,6 +8,20 @@
 
 Proyecto de ciencia de datos (análisis + machine learning) para detectar transacciones fraudulentas en tarjetas de crédito, desarrollado con el flujo completo de un proyecto de Data Science: problema → datos → exploración → preprocesamiento → balanceo → modelos → evaluación → selección → umbral → conclusiones.
 
+**Pruébala en línea en 1 clic:** [<img src="https://img.shields.io/badge/▶_Demo_en_vivo-Streamlit-FF4B4B?logo=streamlit&logoColor=white" alt="Demo en vivo">](https://fraud-detection-l9fzuu2wdfk3rj8ewfjj63.streamlit.app/)
+
+## Resultados en una línea
+
+**Random Forest** entrenado con **SMOTE** y **umbral 0.7**, evaluado sobre **85,118 transacciones reales** de test (142 fraudes):
+
+![Precision](https://img.shields.io/badge/Precision-0.972-2e86ab)
+![Recall](https://img.shields.io/badge/Recall-0.732-2e86ab)
+![F1-score](https://img.shields.io/badge/F1--score-0.835-2e86ab)
+![Umbral](https://img.shields.io/badge/Umbral_optimo-0.7-2e86ab)
+
+- **104 de 142 fraudes detectados (73.2%)** — quedan **38 sin detectar (FN)**.
+- Solo **3 falsas alarmas**: de cada 100 alertas, ~97 son fraudes reales.
+
 ## Demo en vivo
 
 Incluye un **dashboard interactivo** (Streamlit) para probar el modelo en línea, sin instalar nada:
@@ -226,6 +240,13 @@ fraude, la clasificación y análisis visuales. El dashboard incluye:
   umbrales**, tabla de falsos positivos/negativos, curvas ROC y
   Precision-Recall, matriz de confusión y **análisis económico del umbral**
   (costo por revisión vs pérdida por fraude, con umbral recomendado en $).
+
+**5) Tests unitarios:**
+
+```bash
+pip install pytest
+pytest -q
+```
 
 ## Conclusiones
 
